@@ -27,6 +27,16 @@ typedef __u_long u_long;
 typedef int bpf_int32;
 typedef unsigned int bpf_u_int32;
 
+typedef long int __time_t;
+typedef unsigned int __useconds_t;
+typedef long int __suseconds_t;
+
+struct timeval
+  {
+    __time_t tv_sec;
+    __suseconds_t tv_usec;
+  };
+
 typedef ... pcap_dumper;
 typedef struct pcap pcap_t;
 typedef struct pcap_dumper pcap_dumper_t;
@@ -136,8 +146,7 @@ char *pcap_geterr(pcap_t *);
 void pcap_perror(pcap_t *, char *);
 int pcap_compile(pcap_t *, struct bpf_program *, const char *, int,
      bpf_u_int32);
-int pcap_compile_nopcap(int, int, struct bpf_program *,
-     const char *, int, bpf_u_int32);
+int pcap_compile_nopcap(int, int, struct bpf_program *, const char *, int, bpf_u_int32);
 void pcap_freecode(struct bpf_program *);
 int pcap_offline_filter(const struct bpf_program *,
      const struct pcap_pkthdr *, const u_char *);
@@ -158,12 +167,12 @@ int pcap_minor_version(pcap_t *);
 FILE *pcap_file(pcap_t *);
 int pcap_fileno(pcap_t *);
 
-//pcap_dumper_t *pcap_dump_open(pcap_t *, const char *);
-//pcap_dumper_t *pcap_dump_fopen(pcap_t *, FILE *fp);
-//FILE *pcap_dump_file(pcap_dumper_t *);
-//long pcap_dump_ftell(pcap_dumper_t *);
-//int pcap_dump_flush(pcap_dumper_t *);
-//void pcap_dump_close(pcap_dumper_t *);
+pcap_dumper_t *pcap_dump_open(pcap_t *, const char *);
+pcap_dumper_t *pcap_dump_fopen(pcap_t *, FILE *fp);
+FILE *pcap_dump_file(pcap_dumper_t *);
+long pcap_dump_ftell(pcap_dumper_t *);
+int pcap_dump_flush(pcap_dumper_t *);
+void pcap_dump_close(pcap_dumper_t *);
 void pcap_dump(u_char *, const struct pcap_pkthdr *, const u_char *);
 
 int pcap_findalldevs(pcap_if_t **, char *);
@@ -176,4 +185,49 @@ int bpf_validate(const struct bpf_insn *f, int len);
 char *bpf_image(const struct bpf_insn *, int);
 void bpf_dump(const struct bpf_program *, int);
 int pcap_get_selectable_fd(pcap_t *);
+
+#define PCAP_ERRBUF_SIZE ...
+#define PCAP_ERROR			...     /* generic error code */
+#define PCAP_ERROR_BREAK		...     /* loop terminated by pcap_breakloop */
+#define PCAP_ERROR_NOT_ACTIVATED	...     /* the capture needs to be activated */
+#define PCAP_ERROR_ACTIVATED		...     /* the operation can't be performed on already activated captures */
+#define PCAP_ERROR_NO_SUCH_DEVICE	...     /* no such device exists */
+#define PCAP_ERROR_RFMON_NOTSUP		...     /* this device doesn't support rfmon (monitor) mode */
+#define PCAP_ERROR_NOT_RFMON		...     /* operation supported only in monitor mode */
+#define PCAP_ERROR_PERM_DENIED		...     /* no permission to open the device */
+#define PCAP_ERROR_IFACE_NOT_UP		...     /* interface isn't up */
+#define PCAP_ERROR_CANTSET_TSTAMP_TYPE	...	/* this device doesn't support setting the time stamp type */
+#define PCAP_ERROR_PROMISC_PERM_DENIED	...	/* you don't have permission to capture in promiscuous mode */
+#define PCAP_ERROR_TSTAMP_PRECISION_NOTSUP ...  /* the requested time stamp precision is not supported */
+
+/*
+ * Warning codes for the pcap API.
+ * These will all be positive and non-zero, so they won't look like
+ * errors.
+ */
+#define PCAP_WARNING			...	/* generic warning code */
+#define PCAP_WARNING_PROMISC_NOTSUP	...	/* this device doesn't support promiscuous mode */
+#define PCAP_WARNING_TSTAMP_TYPE_NOTSUP	...	/* the requested time stamp type is not supported */
+
+/*
+ * Value to pass to pcap_compile() as the netmask if you don't know what
+ * the netmask is.
+ */
+#define PCAP_NETMASK_UNKNOWN	...
 """)
+
+libpcap = ffi.verify('''
+#include <sys/types.h>
+#include <sys/time.h>
+#include <pcap/pcap.h>
+''', libraries=['pcap'])
+
+errbuf = ffi.new('char[]', libpcap.PCAP_ERRBUF_SIZE)
+
+
+def pcap_error():
+    raise RuntimeError(errbuf)
+
+
+def pcap_statustostr(error):
+    return ffi.string(libpcap.pcap_statustostr(error))
