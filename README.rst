@@ -2,22 +2,13 @@
 pcap-cffi
 ===============================
 
-.. image:: https://badge.fury.io/py/pcapcffi.png
-    :target: http://badge.fury.io/py/pcapcffi
-
-.. image:: https://travis-ci.org/gertburger/pcapcffi.png?branch=master
-        :target: https://travis-ci.org/gertburger/pcapcffi
-
-.. image:: https://pypip.in/d/pcapcffi/badge.png
-        :target: https://pypi.python.org/pypi/pcapcffi
-
-
-Python Boilerplate contains all the boilerplate you need to create a Python package.
+*DOES NOT FUNCTION YET*
 
 * Free software: BSD license
-* Documentation: https://pcapcffi.readthedocs.org.
+* Documentation: https://pcapcffi.readthedocs.org.(TODO)
 
 Features
 --------
 
-* TODO
+* Low level wrapper of all pcap methods.
+* High level Pcap objects providing pythonic access to pcap functionality.
