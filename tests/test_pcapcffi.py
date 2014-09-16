@@ -21,7 +21,7 @@ class TestPcapcffi(object):
         pass
 
     def test_findalldevs(self):
-        devs = pcapcffi.findalldevs()
+        devs = pcapcffi.wrappers.pcap_findalldevs()
         assert devs
 
     def test_pcap(self):
@@ -29,8 +29,8 @@ class TestPcapcffi(object):
         assert pcap._pcap_t
 
         assert not pcap.activated
-        #pcap.activate() # We need root for this
-        #assert pcap.activated
+        pcap.activate()  # We need root for this
+        assert pcap.activated
 
         pcap.close()
 
@@ -40,28 +40,28 @@ class TestPcapcffi(object):
 
         assert not pcap.activated
 
-        assert pcap.set_snaplen(1024)
-        assert pcap.snapshot
-        assert pcap.set_promisc(False)
-        assert pcap.set_promisc(True)
+        # Tests before activation
+        s = pcap.snaplen
+        pcap.snaplen = s
 
-        assert pcap.can_set_rfmon()
-        assert pcap.set_rfmon(False)
-        assert pcap.set_rfmon(True)
+        assert s
+        assert pcap.snaplen
 
-        assert pcap.set_timeout(100)
-        assert pcap.set_buffer_size(65535)
+        assert not pcap.promisc
+        pcap.promisc = True
+        assert pcap.promisc
 
-        assert pcap.set_tstamp_type(0)
-        assert pcap.list_tstamp_types()
+        tstamps = pcap.tstamp_types
+        assert tstamps
+        assert pcap.set_tstamp_type(tstamps[0][0])
 
-        assert pcap.tstamp_type_val_to_name(0)
-        assert pcap.tstamp_type_val_to_description(0)
-        assert pcap.tstamp_type_name_to_val(pcap.tstamp_type_val_to_name(0)) >= 0
+        # Tests after activation
+        pcap.activate()
+        datalink = pcap.datalink
+        assert datalink
 
-        assert pcap.datalink()
-        assert pcap.datalink_val_to_name(0)
-        assert pcap.datalink_val_to_description(0)
-        assert pcap.datalink_name_to_val(pcap.datalink_val_to_name(0)) >= 0
+        datalinks = pcap.datalinks
+        assert datalinks
+        assert pcap.set_datalink(datalinks[0][0])
 
         pcap.close()

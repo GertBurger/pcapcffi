@@ -225,9 +225,5 @@ libpcap = ffi.verify('''
 errbuf = ffi.new('char[]', libpcap.PCAP_ERRBUF_SIZE)
 
 
-def pcap_error():
+def raise_errbuf():
     raise RuntimeError(errbuf)
-
-
-def pcap_statustostr(error):
-    return ffi.string(libpcap.pcap_statustostr(error))
