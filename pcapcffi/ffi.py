@@ -69,10 +69,8 @@ struct pcap_stat {
  u_int ps_recv;
  u_int ps_drop;
  u_int ps_ifdrop;
-
-
-
 };
+
 struct pcap_if {
  struct pcap_if *next;
  char *name;
@@ -223,7 +221,3 @@ libpcap = ffi.verify('''
 ''', libraries=['pcap'])
 
 errbuf = ffi.new('char[]', libpcap.PCAP_ERRBUF_SIZE)
-
-
-def raise_errbuf():
-    raise RuntimeError(errbuf)

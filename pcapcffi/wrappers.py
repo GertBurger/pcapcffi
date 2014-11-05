@@ -1,9 +1,25 @@
 import logging
 
-from .ffi import raise_errbuf, errbuf, ffi, libpcap
+from .ffi import errbuf, ffi, libpcap
 
 log = logging.getLogger(__name__)
 ignore_warnings = False
+
+
+class PcapError(Exception):
+    def __init__(self, pcap_error, msg=None):
+        self.pcap_error = pcap_error
+        if not msg:
+            msg = pcap_statustostr(pcap_error)
+        super(PcapError, self).__init__(msg)
+
+
+class PcapWarning(PcapError):
+    pass
+
+
+def raise_errbuf(pcap_error):
+    raise PcapError(pcap_error, ffi.errbuf)
 
 
 def pcap_statustostr(error):
@@ -99,10 +115,10 @@ def pcap_activate(pcap_t):
     ret = libpcap.pcap_activate(pcap_t)
 
     if ret < 0:
-        raise RuntimeError("Failed to activate pcap %s: %s" % (ret, pcap_statustostr(ret)))
+        raise PcapError(ret)
     elif ret > 0:
         if not ignore_warnings:
-            raise RuntimeError("Activation warning: %s" % pcap_statustostr(ret))
+            raise PcapWarning(ret)
             return False
         else:
             log.warning("Activation warning %s", pcap_statustostr(ret))
@@ -176,7 +192,7 @@ def pcap_tstamp_type_name_to_val(tstamp):
 def pcap_datalink(pcap_t):
     datalink = libpcap.pcap_datalink(pcap_t)
     if datalink == libpcap.PCAP_ERROR_NOT_ACTIVATED:
-        raise RuntimeError("Not Activated")
+        raise PcapError(PCAP_ERROR_NOT_ACTIVATED)
 
     return datalink
 
@@ -214,3 +230,31 @@ def pcap_datalink_name_to_val(datalink):
         raise RuntimeError('Cannot determine datalink name for %s' % datalink)
 
     return ret
+
+
+def pcap_stats(pcap_t):
+    pcap_stat = ffi.new('struct pcap_stat *')
+    ret = libpcap.pcap_stats(pcap_t, pcap_stat)
+
+    if ret < 0:
+        raise PcapError(ret)
+
+    return dict(ps_recv=pcap_stat.ps_recv, ps_drop=pcap_stat.ps_drop, ps_ifdrop=pcap_stat.ps_ifdrop)
+
+
+PCAP_ERRBUF_SIZE = libpcap.PCAP_ERRBUF_SIZE
+PCAP_ERROR = libpcap.PCAP_ERROR
+PCAP_ERROR_BREAK = libpcap.PCAP_ERROR_BREAK
+PCAP_ERROR_NOT_ACTIVATED = libpcap.PCAP_ERROR_NOT_ACTIVATED
+PCAP_ERROR_ACTIVATED = libpcap.PCAP_ERROR_ACTIVATED
+PCAP_ERROR_NO_SUCH_DEVICE = libpcap.PCAP_ERROR_NO_SUCH_DEVICE
+PCAP_ERROR_RFMON_NOTSUP = libpcap.PCAP_ERROR_RFMON_NOTSUP
+PCAP_ERROR_NOT_RFMON = libpcap.PCAP_ERROR_NOT_RFMON
+PCAP_ERROR_PERM_DENIED = libpcap.PCAP_ERROR_PERM_DENIED
+PCAP_ERROR_IFACE_NOT_UP = libpcap.PCAP_ERROR_IFACE_NOT_UP
+PCAP_ERROR_CANTSET_TSTAMP_TYPE = libpcap.PCAP_ERROR_CANTSET_TSTAMP_TYPE
+PCAP_ERROR_PROMISC_PERM_DENIED = libpcap.PCAP_ERROR_PROMISC_PERM_DENIED
+PCAP_ERROR_TSTAMP_PRECISION_NOTSUP = libpcap.PCAP_ERROR_TSTAMP_PRECISION_NOTSUP
+PCAP_WARNING = libpcap.PCAP_WARNING
+PCAP_WARNING_PROMISC_NOTSUP = libpcap.PCAP_WARNING_PROMISC_NOTSUP
+PCAP_WARNING_TSTAMP_TYPE_NOTSUP = libpcap.PCAP_WARNING_TSTAMP_TYPE_NOTSUP

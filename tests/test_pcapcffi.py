@@ -13,55 +13,65 @@ import pytest
 import pcapcffi
 
 
-class TestPcapcffi(object):
-    def setUp(self):
-        pass
+def test_findalldevs():
+    devs = pcapcffi.wrappers.pcap_findalldevs()
+    assert devs
 
-    def tearDown(self):
-        pass
 
-    def test_findalldevs(self):
-        devs = pcapcffi.wrappers.pcap_findalldevs()
-        assert devs
+def test_pcap():
+    pcap = pcapcffi.Pcap('any')
+    assert pcap._pcap_t
 
-    def test_pcap(self):
-        pcap = pcapcffi.Pcap('any')
-        assert pcap._pcap_t
+    assert not pcap.activated
+    pcap.activate()  # We need root for this
+    assert pcap.activated
 
-        assert not pcap.activated
+    with pytest.raises(pcapcffi.PcapError):
         pcap.activate()  # We need root for this
-        assert pcap.activated
 
-        pcap.close()
+    with pytest.raises(pcapcffi.PcapError):
+        pcap.promisc = False
 
-    def test_pcap_options(self):
-        pcap = pcapcffi.Pcap('any')
-        assert pcap._pcap_t
+    pcap.close()
 
-        assert not pcap.activated
 
-        # Tests before activation
+def test_pcap_options():
+    pcap = pcapcffi.Pcap('any')
+    assert pcap._pcap_t
+
+    assert not pcap.activated
+    s = 0
+
+    # Tests before activation
+    with pytest.raises(pcapcffi.PcapError):
         s = pcap.snaplen
-        pcap.snaplen = s
 
-        assert s
-        assert pcap.snaplen
+    with pytest.raises(pcapcffi.PcapError):
+        pcap.snaplen = 1
 
-        assert not pcap.promisc
-        pcap.promisc = True
-        assert pcap.promisc
+    assert s == 0
 
-        tstamps = pcap.tstamp_types
-        assert tstamps
-        assert pcap.set_tstamp_type(tstamps[0][0])
+    assert not pcap.promisc
+    pcap.promisc = True
+    assert pcap.promisc
 
-        # Tests after activation
-        pcap.activate()
-        datalink = pcap.datalink
-        assert datalink
+    tstamps = pcap.tstamp_types
+    assert tstamps
+    assert pcap.set_tstamp_type(tstamps[0][0])
 
-        datalinks = pcap.datalinks
-        assert datalinks
-        assert pcap.set_datalink(datalinks[0][0])
+    with pytest.raises(pcapcffi.PcapError):
+        pcap.datalinks
 
-        pcap.close()
+    # Tests after activation
+    pcap.activate()
+    datalink = pcap.datalink
+    assert datalink
+
+    datalinks = pcap.datalinks
+    assert datalinks
+    assert pcap.set_datalink(datalinks[0][0])
+
+    tstamps = pcap.tstamp_types
+    assert tstamps
+
+    pcap.close()

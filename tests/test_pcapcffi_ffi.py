@@ -8,6 +8,8 @@ test_pcapcffi
 Tests for `pcapcffi` module.
 """
 
+import pytest
+
 from pcapcffi.ffi import libpcap, errbuf
 from pcapcffi import wrappers as w
 
@@ -39,6 +41,10 @@ class TestPcapcffiFFI(object):
         assert w.pcap_tstamp_type_val_to_description(0)
         assert w.pcap_tstamp_type_name_to_val(w.pcap_tstamp_type_val_to_name(0)) >= 0
 
+        with pytest.raises(w.PcapError):
+            stats = w.pcap_stats(pcap_t)
+            assert stats
+
     def test_wrappers_activated(self):
         pcap_t = w.pcap_create('any')
         w.pcap_activate(pcap_t)
@@ -47,3 +53,6 @@ class TestPcapcffiFFI(object):
         assert w.pcap_datalink_val_to_name(0)
         assert w.pcap_datalink_val_to_description(0)
         assert w.pcap_datalink_name_to_val(w.pcap_datalink_val_to_name(0)) >= 0
+
+        stats = w.pcap_stats(pcap_t)
+        assert 'ps_drop' in stats

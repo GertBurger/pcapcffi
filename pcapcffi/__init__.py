@@ -5,4 +5,4 @@ __email__ = 'gertburger@gmail.com'
 __version__ = '0.1.0'
 
 from . import wrappers
-from .pcap import Pcap
+from .pcap import Pcap, PcapError, PcapWarning
