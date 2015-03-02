@@ -23,11 +23,11 @@ def test_pcap():
     assert pcap._pcap_t
 
     assert not pcap.activated
-    pcap.activate()  # We need root for this
+    pcap._activate()  # We need root for this
     assert pcap.activated
 
     with pytest.raises(pcapcffi.PcapError):
-        pcap.activate()  # We need root for this
+        pcap._activate()  # We need root for this
 
     with pytest.raises(pcapcffi.PcapError):
         pcap.promisc = False
@@ -51,9 +51,9 @@ def test_pcap_options():
 
     assert s == 0
 
-    assert not pcap.promisc
-    pcap.promisc = True
     assert pcap.promisc
+    pcap.promisc = False
+    assert not pcap.promisc
 
     tstamps = pcap.tstamp_types
     assert tstamps
@@ -63,7 +63,7 @@ def test_pcap_options():
         pcap.datalinks
 
     # Tests after activation
-    pcap.activate()
+    pcap._activate()
     datalink = pcap.datalink
     assert datalink
 

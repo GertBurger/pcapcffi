@@ -10,7 +10,7 @@ class PcapError(Exception):
     def __init__(self, pcap_error, msg=None):
         self.pcap_error = pcap_error
         if not msg:
-            msg = pcap_statustostr(pcap_error)
+            msg = ffi.string(libpcap.pcap_statustostr(pcap_error))
         super(PcapError, self).__init__(msg)
 
 
@@ -22,8 +22,8 @@ def raise_errbuf(pcap_error):
     raise PcapError(pcap_error, ffi.errbuf)
 
 
-def pcap_statustostr(error):
-    return ffi.string(libpcap.pcap_statustostr(error))
+def raise_geterr(pcap_t):
+    raise PcapError(libpcap.pcap_geterr(pcap_t))
 
 
 def pcap_findalldevs():
@@ -121,7 +121,7 @@ def pcap_activate(pcap_t):
             raise PcapWarning(ret)
             return False
         else:
-            log.warning("Activation warning %s", pcap_statustostr(ret))
+            log.warning("Activation warning %s", libpcap.pcap_statustostr(ret))
 
     return True
 
@@ -147,7 +147,10 @@ def pcap_set_rfmon(pcap_t, rfmon):
 
 
 def pcap_set_timeout(pcap_t, ms):
-    return libpcap.pcap_set_timeout(pcap_t, ms)
+    ret = libpcap.pcap_set_timeout(pcap_t, ms)
+    if ret == -1:
+        raise PcapError(libpcap.PCAP_ERROR_ACTIVATED)
+    return ret
 
 
 def pcap_set_buffer_size(pcap_t, size):
@@ -240,6 +243,17 @@ def pcap_stats(pcap_t):
         raise PcapError(ret)
 
     return dict(ps_recv=pcap_stat.ps_recv, ps_drop=pcap_stat.ps_drop, ps_ifdrop=pcap_stat.ps_ifdrop)
+
+
+def pcap_dispatch(pcap_t, cnt, callback, user):
+    ret = libpcap.pcap_dispatch(pcap_t, cnt, callback, ffi.new('u_char[]', user))
+
+    if ret == -1:
+        raise_geterr(pcap_t)
+    elif ret == -2:
+        return None
+    else:
+        return ret
 
 
 PCAP_ERRBUF_SIZE = libpcap.PCAP_ERRBUF_SIZE

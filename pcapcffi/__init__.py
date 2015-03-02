@@ -6,3 +6,5 @@ __version__ = '0.1.0'
 
 from . import wrappers
 from .pcap import Pcap, PcapError, PcapWarning
+
+__all__ = [wrappers, Pcap, PcapError, PcapWarning]
