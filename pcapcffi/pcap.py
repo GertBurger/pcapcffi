@@ -131,6 +131,9 @@ class Pcap(object):
         del _pcap_user_mapping[user]
 
     def close(self):
+        if self._pcap_t:
+            w.pcap_breakloop(self._pcap_t)
+
         with self._pcap_lock:
             if self._pcap_t:
                 w.pcap_close(self._pcap_t)

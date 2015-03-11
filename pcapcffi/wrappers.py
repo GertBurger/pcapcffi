@@ -48,6 +48,10 @@ def pcap_snapshot(pcap_t):
     return libpcap.pcap_snapshot(pcap_t)
 
 
+def pcap_breakloop(pcap_t):
+    return libpcap.pcap_breakloop(pcap_t)
+
+
 def pcap_create(dev):
     pcap_t = libpcap.pcap_create(dev, errbuf)
 
