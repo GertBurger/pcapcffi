@@ -119,10 +119,13 @@ class Pcap(object):
         user = str(id(self))
         _pcap_user_mapping[user] = self
 
-        with self._pcap_lock:
-            while self.activated:
-                ret = w.pcap_dispatch(self._pcap_t, -1, _packet_handler, user)
-                if ret is None:
+        while True:
+            with self._pcap_lock:
+                if self.activated:
+                    ret = w.pcap_dispatch(self._pcap_t, -1, _packet_handler, user)
+                    if ret is None:
+                        break
+                else:
                     break
 
         del _pcap_user_mapping[user]
