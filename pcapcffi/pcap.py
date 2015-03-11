@@ -18,11 +18,6 @@ def _packet_handler(user, hdr, buff):
     obj._packet_handler(hdr, buff)
 
 
-class _DefaultDecoder(object):
-    def decoder(self, data):
-        return data
-
-
 class Pcap(object):
     def __init__(self, promisc=True, buffer_size=None, read_timeout=100, show_packets=False):
         self._pcap_t = None
