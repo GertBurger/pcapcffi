@@ -22,10 +22,16 @@ class Pcap(object):
     def __init__(self, promisc=True, buffer_size=None, read_timeout=100, show_packets=False):
         self._pcap_t = None
         self._packets = None
+
+        assert promisc in (True, False), "promisc must be either True or False"
         self._promisc = promisc
+
         self._buffer_size = buffer_size
         self._read_timeout = read_timeout
+
+        assert show_packets in (True, False), "show_packets must be either True or False"
         self._show_packets = show_packets
+
         self._pcap_lock = threading.Lock()
 
         try:
