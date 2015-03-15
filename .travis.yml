@@ -9,7 +9,7 @@ python:
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - sudo apt-get install -qq pypy
+  - sudo apt-get install -qq pypy build-essential
   - pip install cffi
   - pip install -r requirements.txt
 
